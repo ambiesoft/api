@@ -50,12 +50,13 @@ $sql = sprintf("SELECT * FROM `%s`", GetTableName($level,$tbnum));
 // Fetch 3 rows from actor table
 $result = $dblink->query ( $sql );
 
+if(!$result) {
+    die('no data');
+}
+
 // Initialize array variable
 $dbdata = array ();
 
-if(!$dbdata) {
-    die('no data');
-}
 // Fetch into associative array
 while ( $row = $result->fetch_assoc () ) {
 	$dbdata [] = $row;
