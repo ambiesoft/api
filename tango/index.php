@@ -53,6 +53,9 @@ $result = $dblink->query ( $sql );
 // Initialize array variable
 $dbdata = array ();
 
+if(!$dbdata) {
+    die('no data');
+}
 // Fetch into associative array
 while ( $row = $result->fetch_assoc () ) {
 	$dbdata [] = $row;
