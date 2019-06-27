@@ -14,16 +14,19 @@ function GetTableName($level,$tbnum)
 
 // mb_internal_encoding("UTF-8");
 // header('Content-type: text/html; charset=utf-8');
-$level = (int)$_GET['level'];
+$level = (int)@$_GET['level'];
 if($level <= 0 || $level > 20 ) {
 	die("Illegal level:$level");
 }
-$tbnum = (int)$_GET['tbnum'];
+$tbnum = (int)@$_GET['tbnum'];
 if($tbnum<= 0 || $tbnum> 20 ) {
 	die("Illegal tbnum:$tbnum");
 }
 
 
+if (!file_exists( dirname(__FILE__) . '/config.php')) {
+    die("'config.php' does not exit. Copy 'config.php.samele' to it and edit.");
+}
 require_once 'config.php';
 // Initialize variable for database credentials
 $dbhost = 'mysqlserverhost';
