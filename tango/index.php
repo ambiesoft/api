@@ -13,7 +13,7 @@ function GetTableName($level,$tbnum)
 }
 
 // mb_internal_encoding("UTF-8");
-// header('Content-type: text/html; charset=utf-8');
+header('Content-type: text/json; charset=utf-8');
 $level = (int)@$_GET['level'];
 if($level <= 0 || $level > 20 ) {
 	die("Illegal level:$level");
