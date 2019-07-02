@@ -36,7 +36,7 @@ if ($dblink->connect_errno) {
 mysqli_set_charset($dblink,"utf8");
 
 $startI = GetStartID($level,$tbnum);
-$sql = sprintf("SELECT * FROM `tango` WHERE %d <= id AND id < %d",
+$sql = sprintf("SELECT word,meaning,pron FROM `tango` WHERE %d <= id AND id < %d",
 		$startI,
 		$startI + 50);
 
