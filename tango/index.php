@@ -1,21 +1,12 @@
 <?php
-function GetTableName($level,$tbnum)
+function GetStartID($level, $tbnum) 
 {
-	while(strlen($level) < 3) {
-		$level = '0' . $level;
-	}
-	
-	while(strlen($tbnum) < 3) {
-		$tbnum= '0' . $tbnum;
-	}
-	
-	return "tango_{$level}_{$tbnum}";
+	return ($level-1)*1000 + (($tbnum-1)*50) + 1;
 }
-
 // mb_internal_encoding("UTF-8");
 header('Content-type: text/json; charset=utf-8');
 $level = (int)@$_GET['level'];
-if($level <= 0 || $level > 20 ) {
+if($level <= 0 || $level > 8 ) {
 	die("Illegal level:$level");
 }
 $tbnum = (int)@$_GET['tbnum'];
@@ -39,23 +30,26 @@ $dblink = new mysqli ( $dbhost, $dbuser, $dbpass, $dbname );
 
 // Check connection was successful
 if ($dblink->connect_errno) {
-	printf ( "Failed to connect to database" );
-	exit ();
+	die ( "Failed to connect to database" );
 }
 
 mysqli_set_charset($dblink,"utf8");
 
-$sql = sprintf("SELECT * FROM `%s`", GetTableName($level,$tbnum));
+$startI = GetStartID($level,$tbnum);
+$sql = sprintf("SELECT * FROM `tango` WHERE %d <= id AND id < %d",
+		$startI,
+		$startI + 50);
+
 
 // Fetch 3 rows from actor table
 $result = $dblink->query ( $sql );
+if(!$result) {
+	die('no data');
+}
 
 // Initialize array variable
 $dbdata = array ();
 
-if(!$dbdata) {
-    die('no data');
-}
 // Fetch into associative array
 while ( $row = $result->fetch_assoc () ) {
 	$dbdata [] = $row;
