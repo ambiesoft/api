@@ -1,7 +1,7 @@
 <?php
-function GetStartID($level, $tbnum) 
+function GetStartID($level, $lesson) 
 {
-	return ($level-1)*1000 + (($tbnum-1)*50) + 1;
+	return ($level-1)*1000 + (($lesson-1)*50) + 1;
 }
 // mb_internal_encoding("UTF-8");
 header('Content-type: text/json; charset=utf-8');
@@ -9,9 +9,9 @@ $level = (int)@$_GET['level'];
 if($level <= 0 || $level > 8 ) {
 	die("Illegal level:$level");
 }
-$tbnum = (int)@$_GET['tbnum'];
-if($tbnum<= 0 || $tbnum> 20 ) {
-	die("Illegal tbnum:$tbnum");
+$lesson = (int)@$_GET['lesson'];
+if($lesson<= 0 || $lesson> 20 ) {
+	die("Illegal lesson:$lesson");
 }
 
 
@@ -35,7 +35,7 @@ if ($dblink->connect_errno) {
 
 mysqli_set_charset($dblink,"utf8");
 
-$startI = GetStartID($level,$tbnum);
+$startI = GetStartID($level,$lesson);
 $sql = sprintf("SELECT word,meaning,gpron FROM `tango` WHERE %d <= id AND id < %d",
 		$startI,
 		$startI + 50);
