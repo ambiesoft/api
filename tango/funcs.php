@@ -18,4 +18,7 @@ function GetLevelFromID($id) {
 function GetLessonFromID($id) {
 	return ( int ) ((($id - 1) % 1000) / 50) + 1;
 }
+
+define('MAX_LEVEL',7);
+define('MAX_LESSON',20);
 ?>
