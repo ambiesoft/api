@@ -1,4 +1,6 @@
 <?php
+define('DEBUGGING',true);
+
 require 'funcs.php';
 
 header ( 'Content-type: text/json; charset=utf-8' );
@@ -13,57 +15,47 @@ $dbuser = DBUSER;
 $dbpass = DBPASS;
 $dbname = 'eitango';
 
-$level = (int)@$_GET ['level'];
-$lesson = (int)@$_GET ['lesson'];
+$level = ( int ) @$_GET ['level'];
+$lesson = ( int ) @$_GET ['lesson'];
 $kindstring = @$_GET ['kind'];
-$id_token= @$_GET ['token'];
+$id_token = @$_GET ['token'];
 
 // sanity check
-if(!(1 <= $level && $level <= MAX_LEVEL)) {
-	die('Illegal Level');
+if (! (1 <= $level && $level <= MAX_LEVEL)) {
+	die ( 'Illegal Level' );
 }
-if(!(1 <= $lesson&& $lesson<= MAX_LESSON)) {
-	die('Illegal lesson');
+if (! (1 <= $lesson && $lesson <= MAX_LESSON)) {
+	die ( 'Illegal lesson' );
 }
 $kind = 0;
-if($kindstring=='normal') {
-	$kind=1;
-} else if($kindstring=='speed') {
-	$kind=2;
-} else if($kindstring=='confirm') {
-	$kind=3;
+if ($kindstring == 'normal') {
+	$kind = 1;
+} else if ($kindstring == 'speed') {
+	$kind = 2;
+} else if ($kindstring == 'confirm') {
+	$kind = 3;
 } else {
-	die('Illegal Kind');
+	die ( 'Illegal Kind' );
 }
 
-// To install google-api run the following
-// enable 'extension=openssl' in php.ini
-//
-// php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-// php -r "if (hash_file('sha384', 'composer-setup.php') === '48e3236262b34d30969dca3c37281b3b4bbe3221bda826ac6a9a62d6444cdb0dcd0615698a5cbe587c3f0fe57a54d8f5') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
-// php composer-setup.php
-// php -r "unlink('composer-setup.php');"
-// ./composer.phar require google/apiclient:"^2.0"
-
-// validate token and get userid
-$userid = '';
-$CLIENT_ID="330872316416-lvi3ta181uma742srekov7nr7kcevfdc.apps.googleusercontent.com";
-require_once 'google-api-php-client/src/Google/autoload.php';
-$client = new Google_Client(['client_id' => $CLIENT_ID]);  // Specify the CLIENT_ID of the app that accesses the backend
-$payload = $client->verifyIdToken($id_token);
-if ($payload) {
-	$userid = $payload['sub'];
+if (DEBUGGING) { // debugging
+	$userid='0000000000000000001';
 } else {
-	// Invalid ID token
-	die('Invalid token');
+	$userid = '';
+	$CLIENT_ID = "330872316416-lvi3ta181uma742srekov7nr7kcevfdc.apps.googleusercontent.com";
+	try {
+		$userid = verifyGoogleToken ( $CLIENT_ID, $id_token );
+		if (! $userid) {
+			die ( 'Invalide UserID' );
+		}
+	} catch ( Exception $e ) {
+		die ( $e );
+	}
 }
 
-exit();
+$currentCount = - 1;
 
-// Initialize array variable
-$dbdata = array ();
-
-if ($q) {
+{
 	// Create database connection
 	$dblink = new mysqli ( $dbhost, $dbuser, $dbpass, $dbname );
 	
@@ -73,25 +65,69 @@ if ($q) {
 	}
 	
 	mysqli_set_charset ( $dblink, "utf8" );
-	
-	$sql = sprintf ( "SELECT id,word,meaning,gpron FROM `tango` WHERE word LIKE '%%%s%%' LIMIT 50",
-			mysqli_real_escape_string($dblink, $q));
-	
-	// Fetch 3 rows from actor table
-	$result = $dblink->query ( $sql );
-	if (! $result) {
-		die ( 'db error' );
+	function getCurrentCount($dblink, $userid, $level, $lesson, $kind) {
+		$sql = sprintf ( "SELECT count FROM `guser` WHERE userid = '%s' AND level = '%d' AND lesson = '%d' LIMIT 1", // no format return
+mysqli_real_escape_string ( $dblink, $userid ), // userid
+mysqli_real_escape_string ( $dblink, $level ), // level
+mysqli_real_escape_string ( $dblink, $lesson ) ); // lesson
+		                                                  // end of sql
+		
+		$result = $dblink->query ( $sql );
+		if (! $result) {
+			die ( mysqli_error ( $dblink ) );
+		}
+		
+		// Get count
+		$ret = mysqli_fetch_all ( $result );
+		if (! $ret) {
+			return - 1;
+		}
+		return $ret [0] [0];
 	}
-
-	// Fetch into associative array
-	while ( $row = $result->fetch_assoc () ) {
-		$row['level'] = GetLevelFromID($row['id']);
-		$row['lesson'] = GetLessonFromID($row['id']);
-		// unset($row['id']);
-		$dbdata [] = $row;
+	
+	$currentCount = getCurrentCount ( $dblink, $userid, $level, $lesson, $kind );
+	
+	if ($currentCount < 0) {
+		// first insert
+		$currentCount = 0;
+		$sql = sprintf ( "INSERT INTO `guser` (`userid`, `level`, `lesson`, `kind`, `count`) VALUES ('%s', '%d', '%d', '%d', '%d')", // no for
+mysqli_real_escape_string ( $dblink, $userid ), // userid
+mysqli_real_escape_string ( $dblink, $level ), // userid
+mysqli_real_escape_string ( $dblink, $lesson ), // userid
+mysqli_real_escape_string ( $dblink, $kind ), // userid
+mysqli_real_escape_string ( $dblink, 1 + $currentCount ) ); // userid
+		                                                            // end of sql
+		
+		$result = $dblink->query ( $sql );
+		if (! $result) {
+			die ( mysqli_error ( $dblink ) );
+		}
+	} else {
+		// Increment count
+		$sql = sprintf ( "UPDATE guser SET `count` = '%d' WHERE userid='%s' AND level='%d' AND lesson='%d' AND kind='%d'", // no return
+mysqli_real_escape_string ( $dblink, 1 + $currentCount ), // new count
+mysqli_real_escape_string ( $dblink, $userid ), // userid
+mysqli_real_escape_string ( $dblink, $level ), // userid
+mysqli_real_escape_string ( $dblink, $lesson ), // userid
+mysqli_real_escape_string ( $dblink, $kind ) ); // userid
+		                                                // end of sql
+		$result = $dblink->query ( $sql );
+		if (! $result) {
+			die ( mysqli_error ( $dblink ) );
+		}
 	}
+	
+	// Get the current value again from the DB
+	$newCurrentCount = getCurrentCount ( $dblink, $userid, $level, $lesson, $kind );
+	
+	// Initialize array variable
+	$retarray = array ();
+	$retarray ['level'] = $level;
+	$retarray ['lesson'] = $lesson;
+	$retarray ['kind'] = $kind;
+	$retarray ['newcount'] = $newCurrentCount;
 }
 // Print array in JSON format
-echo json_encode ( $dbdata );
+echo json_encode ( $retarray );
 
 ?>
