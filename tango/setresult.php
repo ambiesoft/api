@@ -8,7 +8,7 @@ if (! file_exists ( dirname ( __FILE__ ) . '/config.php' )) {
 }
 require_once 'config.php';
 // Initialize variable for database credentials
-$dbhost = 'mysqlserverhost';
+$dbhost = DBHOST;
 $dbuser = DBUSER;
 $dbpass = DBPASS;
 $dbname = 'eitango';
@@ -16,7 +16,7 @@ $dbname = 'eitango';
 $level = (int)@$_GET ['level'];
 $lesson = (int)@$_GET ['lesson'];
 $kindstring = @$_GET ['kind'];
-$token = @$_GET ['token'];
+$id_token= @$_GET ['token'];
 
 // sanity check
 if(!(1 <= $level && $level <= MAX_LEVEL)) {
@@ -36,8 +36,20 @@ if($kindstring=='normal') {
 	die('Illegal Kind');
 }
 
-// code from here
+// validate token and get userid
+$userid = '';
+$CLIENT_ID="330872316416-lvi3ta181uma742srekov7nr7kcevfdc.apps.googleusercontent.com";
+require_once 'google-api-php-client/src/Google/autoload.php';
+$client = new Google_Client(['client_id' => $CLIENT_ID]);  // Specify the CLIENT_ID of the app that accesses the backend
+$payload = $client->verifyIdToken($id_token);
+if ($payload) {
+	$userid = $payload['sub'];
+} else {
+	// Invalid ID token
+	die('Invalid token');
+}
 
+exit();
 
 // Initialize array variable
 $dbdata = array ();
