@@ -19,11 +19,15 @@ $dbpass = DBPASS;
 $dbname = 'eitango';
 
 /*
-https://www.quora.com/How-do-I-post-form-data-to-a-PHP-script-using-Axios
-Axios posts data in JSON format (Content-Type: application/json) Standard $_POST array is not populated when this content type is used. So it will always be empty. In order to get post parameters sent via a json request, you need to use 
-*/
-if($_SERVER['REQUEST_METHOD']==='POST' && empty($_POST)) {
-  $_POST = json_decode(file_get_contents('php://input'));
+ * https://www.quora.com/How-do-I-post-form-data-to-a-PHP-script-using-Axios
+ * Axios posts data in JSON format (Content-Type: application/json) Standard $_POST
+ * array is not populated when this content type is used. So it will always be empty.
+ * In order to get post parameters sent via a json request, you need to use
+ */
+if ($_SERVER ['REQUEST_METHOD'] === 'POST' && empty ( $_POST )) {
+	
+	// set true to return array
+	$_POST = json_decode ( file_get_contents ( 'php://input' ), true );
 }
 
 $level = ( int ) @$_POST ['level'];
@@ -50,7 +54,7 @@ if ($kindstring == 'normal') {
 }
 
 // get userid from session cookie
-$userid = @$_SESSION['userid'];
+$userid = @$_SESSION ['userid'];
 
 if (DEBUGGING) { // debugging
 	$userid = '0000000000000000001';
@@ -68,7 +72,7 @@ if (DEBUGGING) { // debugging
 		}
 		
 		// save session in cookie
-		$_SESSION['userid'] = $userid;
+		$_SESSION ['userid'] = $userid;
 	}
 }
 
