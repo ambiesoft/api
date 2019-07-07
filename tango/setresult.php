@@ -55,9 +55,10 @@ if ($kindstring == 'normal') {
 
 // get userid from session cookie
 $userid = @$_SESSION ['userid'];
-
+$sessret = '';
 if (DEBUGGING) { // debugging
 	$userid = '0000000000000000001';
+	$sessret = 'debbuging';
 } else {
 	if (! $userid) {
 		// Could not have userid in session, get it from google
@@ -73,6 +74,9 @@ if (DEBUGGING) { // debugging
 		
 		// save session in cookie
 		$_SESSION ['userid'] = $userid;
+		$sessret = 'authorized';
+	} else {
+		$sessret = 'hassession';
 	}
 }
 
@@ -150,7 +154,9 @@ mysqli_real_escape_string ( $dblink, $kind ) ); // userid
 	$retarray ['kind'] = $kind;
 	$retarray ['newcount'] = $newCurrentCount;
 }
+
 // Print array in JSON format
+$retarray['sessret'] = $sessret;
 echo json_encode ( $retarray );
 
 ?>
