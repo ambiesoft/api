@@ -1,9 +1,12 @@
 <?php
-define('DEBUGGING',true);
+define ( 'DEBUGGING', false );
 
 require 'funcs.php';
 
 header ( 'Content-type: text/json; charset=utf-8' );
+if (! session_start ()) {
+	die ( 'failed to start session' );
+}
 
 if (! file_exists ( dirname ( __FILE__ ) . '/config.php' )) {
 	die ( "'config.php' does not exit. Copy 'config.php.samele' to it and edit." );
@@ -38,18 +41,26 @@ if ($kindstring == 'normal') {
 	die ( 'Illegal Kind' );
 }
 
+// get userid from session cookie
+$userid = @$_SESSION['userid'];
+
 if (DEBUGGING) { // debugging
-	$userid='0000000000000000001';
+	$userid = '0000000000000000001';
 } else {
-	$userid = '';
-	$CLIENT_ID = "330872316416-lvi3ta181uma742srekov7nr7kcevfdc.apps.googleusercontent.com";
-	try {
-		$userid = verifyGoogleToken ( $CLIENT_ID, $id_token );
-		if (! $userid) {
-			die ( 'Invalide UserID' );
+	if (! $userid) {
+		// Could not have userid in session, get it from google
+		$CLIENT_ID = "330872316416-lvi3ta181uma742srekov7nr7kcevfdc.apps.googleusercontent.com";
+		try {
+			$userid = verifyGoogleToken ( $CLIENT_ID, $id_token );
+			if (! $userid) {
+				die ( 'Invalide UserID' );
+			}
+		} catch ( Exception $e ) {
+			die ( $e );
 		}
-	} catch ( Exception $e ) {
-		die ( $e );
+		
+		// save session in cookie
+		$_SESSION['userid'] = $userid;
 	}
 }
 
