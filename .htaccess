@@ -3,5 +3,7 @@
 #  Header add Access-Control-Allow-Origin "http://tango.dip.jp"
 SetEnvIf Origin "^https?://(localhost:8080|tango\.dip\.jp)" ORIGIN=$0
 Header set Access-Control-Allow-Origin %{ORIGIN}e env=ORIGIN
+Header set Access-Control-Allow-Methods "GET,PUT,POST,DELETE"
+Header set Access-Control-Allow-Headers "Content-Type, Authorization"
 </IfModule>
 
