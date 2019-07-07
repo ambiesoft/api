@@ -18,10 +18,18 @@ $dbuser = DBUSER;
 $dbpass = DBPASS;
 $dbname = 'eitango';
 
-$level = ( int ) @$_GET ['level'];
-$lesson = ( int ) @$_GET ['lesson'];
-$kindstring = @$_GET ['kind'];
-$id_token = @$_GET ['token'];
+/*
+https://www.quora.com/How-do-I-post-form-data-to-a-PHP-script-using-Axios
+Axios posts data in JSON format (Content-Type: application/json) Standard $_POST array is not populated when this content type is used. So it will always be empty. In order to get post parameters sent via a json request, you need to use 
+*/
+if($_SERVER['REQUEST_METHOD']==='POST' && empty($_POST)) {
+  $_POST = json_decode(file_get_contents('php://input'));
+}
+
+$level = ( int ) @$_POST ['level'];
+$lesson = ( int ) @$_POST ['lesson'];
+$kindstring = @$_POST ['kind'];
+$id_token = @$_POST ['token'];
 
 // sanity check
 if (! (1 <= $level && $level <= MAX_LEVEL)) {
