@@ -78,11 +78,12 @@ function getParamLesson() {
 	die ( "Illegal lesson:$lesson" );
 }
 function getGoogleUserID($id_token) {
-	if (! session_start ()) {
-		die ( 'failed to start session' );
-	}
-	
-	$userid = @$_SESSION ['userid'];
+	// should not keep userid
+	// if (! session_start ()) {
+	// die ( 'failed to start session' );
+	// }
+	// $userid = @$_SESSION ['userid'];
+	$userid = '';
 	$sessret = '';
 	if (defined ( 'DEBUGGING' ) && DEBUGGING) { // debugging
 		$userid = '0000000000000000001';
@@ -101,7 +102,7 @@ function getGoogleUserID($id_token) {
 			}
 			
 			// save session in cookie
-			$_SESSION ['userid'] = $userid;
+			// $_SESSION ['userid'] = $userid;
 			$sessret = 'authorized';
 		} else {
 			$sessret = 'hassession';
@@ -175,7 +176,7 @@ switch ($method) {
 		}
 		
 		// get userid from session cookie
-		list ( $userid, $sessret ) = getGoogleUserID ($id_token);
+		list ( $userid, $sessret ) = getGoogleUserID ( $id_token );
 		if (! $userid) {
 			die ( 'User id not found' );
 		}
@@ -246,31 +247,31 @@ mysqli_real_escape_string ( $link, $kind ) ); // userid
 		break;
 	case 'lessons' :
 		$level = getParamLevel ();
-		list ( $userid, $sessret ) = getGoogleUserID ($id_token);
+		list ( $userid, $sessret ) = getGoogleUserID ( $id_token );
 		if (! $userid) {
 			die ( 'User id not found' );
 		}
 		
 		$sql = sprintf ( "SELECT *  FROM `guser` WHERE `userid` = '%s' AND `level` = %d", // no ret
 mysqli_real_escape_string ( $link, $userid ), // userid
-mysqli_real_escape_string ( $link, $level ) ) // $level
-; // endof sqlF
+mysqli_real_escape_string ( $link, $level ) ); // $level
+ // endof sqlF
 		$result = $link->query ( $sql );
 		if (! $result) {
 			die ( mysqli_error ( $link ) );
 		}
 		
 		// create empty ret
-// 		for($i=1 ; $i <= MAX_LESSON ; ++$i) {
-// 			$dbdata[$i] = array();
-// 			$dbdata[$i]['lesson']=$i;
-// 		}
+		// for($i=1 ; $i <= MAX_LESSON ; ++$i) {
+		// $dbdata[$i] = array();
+		// $dbdata[$i]['lesson']=$i;
+		// }
 		
-		while ($row = $result->fetch_assoc()) {
-			unset($row['userid']);
+		while ( $row = $result->fetch_assoc () ) {
+			unset ( $row ['userid'] );
 			
-			/// $dbdata[$row['lesson']] = $row;
-			$dbdata[] = $row;
+			// / $dbdata[$row['lesson']] = $row;
+			$dbdata [] = $row;
 		}
 		
 		break;
