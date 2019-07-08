@@ -20,6 +20,8 @@ if ($_SERVER ['REQUEST_METHOD'] === 'POST' && empty ( $_POST )) {
 }
 
 $method = @$_GET ['method'];
+$id_token = @$_POST ['token'];
+
 // if ($method != 'tango' && $method != 'levels' && $method != 'search' && ) {
 if (! in_array ( $method, [ 
 		'tango',
@@ -75,7 +77,7 @@ function getParamLesson() {
 	
 	die ( "Illegal lesson:$lesson" );
 }
-function getGoogleUserID() {
+function getGoogleUserID($id_token) {
 	if (! session_start ()) {
 		die ( 'failed to start session' );
 	}
@@ -174,7 +176,7 @@ switch ($method) {
 		}
 		
 		// get userid from session cookie
-		list ( $userid, $sessret ) = getGoogleUserID ();
+		list ( $userid, $sessret ) = getGoogleUserID ($id_token);
 		if (! $userid) {
 			die ( 'User id not found' );
 		}
@@ -245,7 +247,7 @@ mysqli_real_escape_string ( $link, $kind ) ); // userid
 		break;
 	case 'lessons' :
 		$level = getParamLevel ();
-		list ( $userid, $sessret ) = getGoogleUserID ();
+		list ( $userid, $sessret ) = getGoogleUserID ($id_token);
 		if (! $userid) {
 			die ( 'User id not found' );
 		}
