@@ -162,7 +162,6 @@ switch ($method) {
 		$level = getParamLevel ();
 		$lesson = getParamLesson ();
 		$kindstring = @$_POST ['kind'];
-		$id_token = @$_POST ['token'];
 		
 		$kind = 0;
 		if ($kindstring == 'normal') {

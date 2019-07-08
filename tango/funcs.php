@@ -42,7 +42,7 @@ function verifyGoogleToken($CLIENT_ID, $id_token) {
 		return $userid;
 	} else {
 		// Invalid ID token
-		die ( 'Invalid token' );
+		die ( 'Invalid token:' . $id_token );
 	}
 }
 
