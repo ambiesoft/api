@@ -184,11 +184,13 @@ switch ($method) {
 		$currentCount = - 1;
 		
 		function getCurrentCount($dblink, $userid, $level, $lesson, $kind) {
-			$sql = sprintf ( "SELECT count FROM `guser` WHERE userid = '%s' AND level = '%d' AND lesson = '%d' LIMIT 1", // no format return
+			$sql = sprintf ( "SELECT count FROM `guser` WHERE userid = '%s' AND level = '%d' AND lesson = '%d' kind = '%d' LIMIT 1", // no format return
 mysqli_real_escape_string ( $dblink, $userid ), // userid
 mysqli_real_escape_string ( $dblink, $level ), // level
-mysqli_real_escape_string ( $dblink, $lesson ) ); // lesson
-			                                                  // end of sql
+mysqli_real_escape_string ( $dblink, $lesson ), // lesson
+mysqli_real_escape_string ( $dblink, $kind ) ) // lesson
+;
+			// end of sql
 			
 			$result = $dblink->query ( $sql );
 			if (! $result) {
@@ -255,7 +257,7 @@ mysqli_real_escape_string ( $link, $kind ) ); // userid
 		$sql = sprintf ( "SELECT *  FROM `guser` WHERE `userid` = '%s' AND `level` = %d", // no ret
 mysqli_real_escape_string ( $link, $userid ), // userid
 mysqli_real_escape_string ( $link, $level ) ); // $level
- // endof sqlF
+		                                               // endof sqlF
 		$result = $link->query ( $sql );
 		if (! $result) {
 			die ( mysqli_error ( $link ) );
