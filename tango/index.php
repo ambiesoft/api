@@ -23,7 +23,7 @@ $method = @$_GET ['method'];
 // if ($method != 'tango' && $method != 'levels' && $method != 'search' && ) {
 if (! in_array ( $method, [ 
 		'tango',
-		'levels',
+		'lessons',
 		'search',
 		'setresult' 
 ] )) {
@@ -75,6 +75,42 @@ function getParamLesson() {
 	
 	die ( "Illegal lesson:$lesson" );
 }
+function getGoogleUserID() {
+	if (! session_start ()) {
+		die ( 'failed to start session' );
+	}
+	
+	$userid = @$_SESSION ['userid'];
+	$sessret = '';
+	if (defined ( 'DEBUGGING' ) && DEBUGGING) { // debugging
+		$userid = '0000000000000000001';
+		$sessret = 'debbuging';
+	} else {
+		if (! $userid) {
+			// Could not have userid in session, get it from google
+			$CLIENT_ID = "330872316416-lvi3ta181uma742srekov7nr7kcevfdc.apps.googleusercontent.com";
+			try {
+				$userid = verifyGoogleToken ( $CLIENT_ID, $id_token );
+				if (! $userid) {
+					die ( 'Invalide UserID' );
+				}
+			} catch ( Exception $e ) {
+				die ( $e );
+			}
+			
+			// save session in cookie
+			$_SESSION ['userid'] = $userid;
+			$sessret = 'authorized';
+		} else {
+			$sessret = 'hassession';
+		}
+	}
+	return array (
+			$userid,
+			$sessret 
+	);
+}
+
 switch ($method) {
 	
 	case 'tango' :
@@ -120,9 +156,6 @@ switch ($method) {
 		break;
 	
 	case 'setresult' :
-		if (! session_start ()) {
-			die ( 'failed to start session' );
-		}
 		
 		$level = getParamLevel ();
 		$lesson = getParamLesson ();
@@ -141,30 +174,9 @@ switch ($method) {
 		}
 		
 		// get userid from session cookie
-		$userid = @$_SESSION ['userid'];
-		$sessret = '';
-		if (defined ( 'DEBUGGING' ) && DEBUGGING) { // debugging
-			$userid = '0000000000000000001';
-			$sessret = 'debbuging';
-		} else {
-			if (! $userid) {
-				// Could not have userid in session, get it from google
-				$CLIENT_ID = "330872316416-lvi3ta181uma742srekov7nr7kcevfdc.apps.googleusercontent.com";
-				try {
-					$userid = verifyGoogleToken ( $CLIENT_ID, $id_token );
-					if (! $userid) {
-						die ( 'Invalide UserID' );
-					}
-				} catch ( Exception $e ) {
-					die ( $e );
-				}
-				
-				// save session in cookie
-				$_SESSION ['userid'] = $userid;
-				$sessret = 'authorized';
-			} else {
-				$sessret = 'hassession';
-			}
+		list ( $userid, $sessret ) = getGoogleUserID ();
+		if (! $userid) {
+			die ( 'User id not found' );
 		}
 		
 		$currentCount = - 1;
@@ -231,8 +243,34 @@ mysqli_real_escape_string ( $link, $kind ) ); // userid
 		$dbdata ['newcount'] = $newCurrentCount;
 		
 		break;
-	case 'levels' :
+	case 'lessons' :
 		$level = getParamLevel ();
+		list ( $userid, $sessret ) = getGoogleUserID ();
+		if (! $userid) {
+			die ( 'User id not found' );
+		}
+		
+		$sql = sprintf ( "SELECT *  FROM `guser` WHERE `userid` = '%s' AND `level` = %d", // no ret
+mysqli_real_escape_string ( $link, $userid ), // userid
+mysqli_real_escape_string ( $link, $level ) ) // $level
+; // endof sqlF
+		$result = $link->query ( $sql );
+		if (! $result) {
+			die ( mysqli_error ( $link ) );
+		}
+		
+		// create empty ret
+// 		for($i=1 ; $i <= MAX_LESSON ; ++$i) {
+// 			$dbdata[$i] = array();
+// 			$dbdata[$i]['lesson']=$i;
+// 		}
+		
+		while ($row = $result->fetch_assoc()) {
+			unset($row['userid']);
+			
+			/// $dbdata[$row['lesson']] = $row;
+			$dbdata[] = $row;
+		}
 		
 		break;
 }
