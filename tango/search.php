@@ -20,20 +20,20 @@ $dbdata = array ();
 
 if ($q) {
 	// Create database connection
-	$dblink = new mysqli ( $dbhost, $dbuser, $dbpass, $dbname );
+	$link = new mysqli ( $dbhost, $dbuser, $dbpass, $dbname );
 	
 	// Check connection was successful
-	if ($dblink->connect_errno) {
+	if ($link->connect_errno) {
 		die ( "Failed to connect to database" );
 	}
 	
-	mysqli_set_charset ( $dblink, "utf8" );
+	mysqli_set_charset ( $link, "utf8" );
 	
 	$sql = sprintf ( "SELECT id,word,meaning,gpron FROM `tango` WHERE word LIKE '%%%s%%' LIMIT 50",
-			mysqli_real_escape_string($dblink, $q));
+			mysqli_real_escape_string($link, $q));
 	
 	// Fetch 3 rows from actor table
-	$result = $dblink->query ( $sql );
+	$result = $link->query ( $sql );
 	if (! $result) {
 		die ( 'db error' );
 	}

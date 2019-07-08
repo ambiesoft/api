@@ -84,14 +84,14 @@ $currentCount = - 1;
 
 {
 	// Create database connection
-	$dblink = new mysqli ( $dbhost, $dbuser, $dbpass, $dbname );
+	$link = new mysqli ( $dbhost, $dbuser, $dbpass, $dbname );
 	
 	// Check connection was successful
-	if ($dblink->connect_errno) {
+	if ($link->connect_errno) {
 		die ( "Failed to connect to database" );
 	}
 	
-	mysqli_set_charset ( $dblink, "utf8" );
+	mysqli_set_charset ( $link, "utf8" );
 	function getCurrentCount($dblink, $userid, $level, $lesson, $kind) {
 		$sql = sprintf ( "SELECT count FROM `guser` WHERE userid = '%s' AND level = '%d' AND lesson = '%d' LIMIT 1", // no format return
 mysqli_real_escape_string ( $dblink, $userid ), // userid
@@ -112,40 +112,40 @@ mysqli_real_escape_string ( $dblink, $lesson ) ); // lesson
 		return $ret [0] [0];
 	}
 	
-	$currentCount = getCurrentCount ( $dblink, $userid, $level, $lesson, $kind );
+	$currentCount = getCurrentCount ( $link, $userid, $level, $lesson, $kind );
 	
 	if ($currentCount < 0) {
 		// first insert
 		$currentCount = 0;
 		$sql = sprintf ( "INSERT INTO `guser` (`userid`, `level`, `lesson`, `kind`, `count`) VALUES ('%s', '%d', '%d', '%d', '%d')", // no for
-mysqli_real_escape_string ( $dblink, $userid ), // userid
-mysqli_real_escape_string ( $dblink, $level ), // userid
-mysqli_real_escape_string ( $dblink, $lesson ), // userid
-mysqli_real_escape_string ( $dblink, $kind ), // userid
-mysqli_real_escape_string ( $dblink, 1 + $currentCount ) ); // userid
+mysqli_real_escape_string ( $link, $userid ), // userid
+mysqli_real_escape_string ( $link, $level ), // userid
+mysqli_real_escape_string ( $link, $lesson ), // userid
+mysqli_real_escape_string ( $link, $kind ), // userid
+mysqli_real_escape_string ( $link, 1 + $currentCount ) ); // userid
 		                                                            // end of sql
 		
-		$result = $dblink->query ( $sql );
+		$result = $link->query ( $sql );
 		if (! $result) {
-			die ( mysqli_error ( $dblink ) );
+			die ( mysqli_error ( $link ) );
 		}
 	} else {
 		// Increment count
 		$sql = sprintf ( "UPDATE guser SET `count` = '%d' WHERE userid='%s' AND level='%d' AND lesson='%d' AND kind='%d'", // no return
-mysqli_real_escape_string ( $dblink, 1 + $currentCount ), // new count
-mysqli_real_escape_string ( $dblink, $userid ), // userid
-mysqli_real_escape_string ( $dblink, $level ), // userid
-mysqli_real_escape_string ( $dblink, $lesson ), // userid
-mysqli_real_escape_string ( $dblink, $kind ) ); // userid
+mysqli_real_escape_string ( $link, 1 + $currentCount ), // new count
+mysqli_real_escape_string ( $link, $userid ), // userid
+mysqli_real_escape_string ( $link, $level ), // userid
+mysqli_real_escape_string ( $link, $lesson ), // userid
+mysqli_real_escape_string ( $link, $kind ) ); // userid
 		                                                // end of sql
-		$result = $dblink->query ( $sql );
+		$result = $link->query ( $sql );
 		if (! $result) {
-			die ( mysqli_error ( $dblink ) );
+			die ( mysqli_error ( $link ) );
 		}
 	}
 	
 	// Get the current value again from the DB
-	$newCurrentCount = getCurrentCount ( $dblink, $userid, $level, $lesson, $kind );
+	$newCurrentCount = getCurrentCount ( $link, $userid, $level, $lesson, $kind );
 	
 	// Initialize array variable
 	$retarray = array ();
