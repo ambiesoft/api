@@ -27,7 +27,8 @@ if (! in_array ( $method, [
 		'tango',
 		'lessons',
 		'search',
-		'setresult' 
+		'setresult',
+		'quiz' 
 ] )) {
 	die ( "Illegal method:$method" );
 }
@@ -188,8 +189,8 @@ switch ($method) {
 mysqli_real_escape_string ( $dblink, $userid ), // userid
 mysqli_real_escape_string ( $dblink, $level ), // level
 mysqli_real_escape_string ( $dblink, $lesson ), // lesson
-mysqli_real_escape_string ( $dblink, $kind ) ) // lesson
-;
+mysqli_real_escape_string ( $dblink, $kind ) ); // lesson
+			                                                
 			// end of sql
 			
 			$result = $dblink->query ( $sql );
@@ -276,6 +277,44 @@ mysqli_real_escape_string ( $link, $level ) ); // $level
 			$dbdata [] = $row;
 		}
 		
+		break;
+	
+	case 'quiz' :
+		// take 5 words from each level
+		for($i = 1; $i <= MAX_LEVEL; ++ $i) {
+			$startI = GetStartID ( $i, 1 );
+			$endI = GetStartID ( $i + 1, 1 ) - 1;
+			
+			$sql = sprintf ( "SELECT * FROM `tango` WHERE %d <= id && id <= %d ORDER BY RAND() LIMIT 5", // no ret
+mysqli_real_escape_string ( $link, $startI ), // startI
+mysqli_real_escape_string ( $link, $endI ) ); // endI
+			                                              // end of sql
+			
+			$result = $link->query ( $sql );
+			if (! $result)
+				die ( mysqli_error ( $link ) );
+			
+			while ( $row = $result->fetch_assoc () ) {
+				$dbdata [] = $row;
+			}
+		}
+		
+		// get wrong answers and fill
+		foreach ( $dbdata as &$value ) {
+			$id = $value ['id'];
+			$sql = sprintf ( "SELECT * FROM `tango` WHERE id != %d ORDER BY RAND() LIMIT 4", // no ret
+mysqli_real_escape_string ( $link, $id ) );
+			
+			$result = $link->query ( $sql );
+			if (! $result)
+				die ( mysqli_error ( $link ) );
+			
+			$wrongs = [ ];
+			while ( $row = $result->fetch_assoc () ) {
+				$wrongs [] = $row ['meaning'];
+			}
+			$value ['wronganswers'] = $wrongs;
+		}
 		break;
 }
 
