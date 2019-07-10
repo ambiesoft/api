@@ -1,4 +1,6 @@
 <?php
+define('DEBUGGING',false);
+
 require 'funcs.php';
 
 // mb_internal_encoding("UTF-8");
@@ -115,6 +117,9 @@ function getGoogleUserID($id_token) {
 	);
 }
 
+function getDBCurrentTime() {
+	return gmdate('Y-m-d H:i:s');
+}
 switch ($method) {
 	
 	case 'tango' :
@@ -182,7 +187,7 @@ switch ($method) {
 			die ( 'User id not found' );
 		}
 		
-		$currentCount = - 1;
+
 		
 		function getCurrentCount($dblink, $userid, $level, $lesson, $kind) {
 			$sql = sprintf ( "SELECT count FROM `guser` WHERE userid = '%s' AND level = '%d' AND lesson = '%d' AND kind = '%d' LIMIT 1", // no format return
@@ -211,12 +216,14 @@ mysqli_real_escape_string ( $dblink, $kind ) ); // lesson
 		if ($currentCount < 0) {
 			// first insert
 			$currentCount = 0;
-			$sql = sprintf ( "INSERT INTO `guser` (`userid`, `level`, `lesson`, `kind`, `count`) VALUES ('%s', '%d', '%d', '%d', '%d')", // no for
+			$sql = sprintf ( "INSERT INTO `guser` (`userid`, `level`, `lesson`, `kind`, `count`, `lastupdate`) VALUES ('%s', '%d', '%d', '%d', '%d', '%s')", // no for
 mysqli_real_escape_string ( $link, $userid ), // userid
 mysqli_real_escape_string ( $link, $level ), // userid
 mysqli_real_escape_string ( $link, $lesson ), // userid
 mysqli_real_escape_string ( $link, $kind ), // userid
-mysqli_real_escape_string ( $link, 1 + $currentCount ) ); // userid
+					mysqli_real_escape_string ( $link, 1 + $currentCount ), // count
+					mysqli_real_escape_string ( $link, getDBCurrentTime() ) // lastupdate
+					); // userid
 			                                                          // end of sql
 			
 			$result = $link->query ( $sql );
@@ -225,12 +232,14 @@ mysqli_real_escape_string ( $link, 1 + $currentCount ) ); // userid
 			}
 		} else {
 			// Increment count
-			$sql = sprintf ( "UPDATE guser SET `count` = '%d' WHERE userid='%s' AND level='%d' AND lesson='%d' AND kind='%d'", // no return
-mysqli_real_escape_string ( $link, 1 + $currentCount ), // new count
-mysqli_real_escape_string ( $link, $userid ), // userid
+			$sql = sprintf ( "UPDATE guser SET `count` = '%d', `lastupdate` = '%s' WHERE userid='%s' AND level='%d' AND lesson='%d' AND kind='%d'", // no return
+					mysqli_real_escape_string ( $link, 1 + $currentCount ), // new count
+					mysqli_real_escape_string ( $link, getDBCurrentTime() ), // update
+					mysqli_real_escape_string ( $link, $userid ), // userid
 mysqli_real_escape_string ( $link, $level ), // userid
 mysqli_real_escape_string ( $link, $lesson ), // userid
-mysqli_real_escape_string ( $link, $kind ) ); // userid
+mysqli_real_escape_string ( $link, $kind )
+					); // userid
 			                                              // end of sql
 			$result = $link->query ( $sql );
 			if (! $result) {
