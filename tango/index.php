@@ -10,6 +10,11 @@ function mydie($message) {
 	die ( $message );
 }
 
+if ($_SERVER ['REQUEST_METHOD'] !== 'POST' &&$_SERVER ['REQUEST_METHOD'] !== 'GET') {
+	// return OK
+	exit(0);
+}
+		
 /*
  * https://www.quora.com/How-do-I-post-form-data-to-a-PHP-script-using-Axios
  * Axios posts data in JSON format (Content-Type: application/json) Standard $_POST
