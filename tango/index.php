@@ -1,5 +1,7 @@
 <?php
 // define ( 'DEBUGGING', true );
+define('USESESSION',true);
+
 require 'funcs.php';
 
 // mb_internal_encoding("UTF-8");
@@ -100,12 +102,14 @@ function getParam($param) {
 	return @$_POST [$param];
 }
 function getGoogleUserID($id_token) {
-	// should not keep userid
-	// if (! session_start ()) {
-	// mydie( 'failed to start session' );
-	// }
-	// $userid = @$_SESSION ['userid'];
-	$userid = '';
+	if (USESESSION) {
+		if (! session_start ()) {
+			mydie ( 'failed to start session' );
+		}
+		$userid = @$_SESSION ['userid'];
+	} else {
+		$userid = '';
+	}
 	$sessret = '';
 	if (defined ( 'DEBUGGING' ) && DEBUGGING) { // debugging
 		$userid = '0000000000000000001';
@@ -124,7 +128,9 @@ function getGoogleUserID($id_token) {
 			}
 			
 			// save session in cookie
-			// $_SESSION ['userid'] = $userid;
+			if(USESESSION) {
+			$_SESSION ['userid'] = $userid;
+			}
 			$sessret = 'authorized';
 		} else {
 			$sessret = 'hassession';
@@ -201,7 +207,6 @@ switch ($method) {
 			mydie ( 'Illegal Kind', 11 );
 		}
 		
-		// get userid from session cookie
 		list ( $userid, $sessret ) = getGoogleUserID ( $id_token );
 		if (! $userid) {
 			mydie ( 'User id not found', 12 );
