@@ -1,5 +1,5 @@
 <?php
-define('DEBUGGING',false);
+define ( 'DEBUGGING', true );
 
 require 'funcs.php';
 
@@ -80,6 +80,12 @@ function getParamLesson() {
 	
 	die ( "Illegal lesson:$lesson" );
 }
+function getParam($param) {
+	if (isset ( $_GET [$param] )) {
+		return $_GET [$param];
+	}
+	return @$_POST [$param];
+}
 function getGoogleUserID($id_token) {
 	// should not keep userid
 	// if (! session_start ()) {
@@ -116,9 +122,8 @@ function getGoogleUserID($id_token) {
 			$sessret 
 	);
 }
-
 function getDBCurrentTime() {
-	return gmdate('Y-m-d H:i:s');
+	return gmdate ( 'Y-m-d H:i:s' );
 }
 switch ($method) {
 	
@@ -169,6 +174,7 @@ switch ($method) {
 		$level = getParamLevel ();
 		$lesson = getParamLesson ();
 		$kindstring = @$_POST ['kind'];
+		$score = getParam ( 'score' );
 		
 		$kind = 0;
 		if ($kindstring == 'normal') {
@@ -177,6 +183,8 @@ switch ($method) {
 			$kind = 2;
 		} else if ($kindstring == 'confirm') {
 			$kind = 3;
+		} else if ($kindstring == 'test') {
+			$kind = 4;
 		} else {
 			die ( 'Illegal Kind' );
 		}
@@ -187,10 +195,8 @@ switch ($method) {
 			die ( 'User id not found' );
 		}
 		
-
-		
 		function getCurrentCount($dblink, $userid, $level, $lesson, $kind) {
-			$sql = sprintf ( "SELECT count FROM `guser` WHERE userid = '%s' AND level = '%d' AND lesson = '%d' AND kind = '%d' LIMIT 1", // no format return
+			$sql = sprintf ( "SELECT count,scores FROM `guser` WHERE userid = '%s' AND level = '%d' AND lesson = '%d' AND kind = '%d' LIMIT 1", // no format return
 mysqli_real_escape_string ( $dblink, $userid ), // userid
 mysqli_real_escape_string ( $dblink, $level ), // level
 mysqli_real_escape_string ( $dblink, $lesson ), // lesson
@@ -206,12 +212,18 @@ mysqli_real_escape_string ( $dblink, $kind ) ); // lesson
 			// Get count
 			$ret = mysqli_fetch_all ( $result );
 			if (! $ret) {
-				return - 1;
+				return [ 
+						- 1,
+						null 
+				];
 			}
-			return $ret [0] [0];
+			return [ 
+					$ret [0] [0],
+					$ret [0] [1] 
+			];
 		}
 		
-		$currentCount = getCurrentCount ( $link, $userid, $level, $lesson, $kind );
+		list ( $currentCount, $currentScores ) = getCurrentCount ( $link, $userid, $level, $lesson, $kind );
 		
 		if ($currentCount < 0) {
 			// first insert
@@ -221,10 +233,10 @@ mysqli_real_escape_string ( $link, $userid ), // userid
 mysqli_real_escape_string ( $link, $level ), // userid
 mysqli_real_escape_string ( $link, $lesson ), // userid
 mysqli_real_escape_string ( $link, $kind ), // userid
-					mysqli_real_escape_string ( $link, 1 + $currentCount ), // count
-					mysqli_real_escape_string ( $link, getDBCurrentTime() ) // lastupdate
-					); // userid
-			                                                          // end of sql
+mysqli_real_escape_string ( $link, 1 + $currentCount ), // count
+mysqli_real_escape_string ( $link, getDBCurrentTime () ) ) // lastupdate
+; // userid
+			   // end of sql
 			
 			$result = $link->query ( $sql );
 			if (! $result) {
@@ -233,14 +245,45 @@ mysqli_real_escape_string ( $link, $kind ), // userid
 		} else {
 			// Increment count
 			$sql = sprintf ( "UPDATE guser SET `count` = '%d', `lastupdate` = '%s' WHERE userid='%s' AND level='%d' AND lesson='%d' AND kind='%d'", // no return
-					mysqli_real_escape_string ( $link, 1 + $currentCount ), // new count
-					mysqli_real_escape_string ( $link, getDBCurrentTime() ), // update
-					mysqli_real_escape_string ( $link, $userid ), // userid
+mysqli_real_escape_string ( $link, 1 + $currentCount ), // new count
+mysqli_real_escape_string ( $link, getDBCurrentTime () ), // update
+mysqli_real_escape_string ( $link, $userid ), // userid
 mysqli_real_escape_string ( $link, $level ), // userid
 mysqli_real_escape_string ( $link, $lesson ), // userid
-mysqli_real_escape_string ( $link, $kind )
-					); // userid
-			                                              // end of sql
+mysqli_real_escape_string ( $link, $kind ) ); // userid
+			   // end of sql
+			$result = $link->query ( $sql );
+			if (! $result) {
+				die ( mysqli_error ( $link ) );
+			}
+		}
+		
+		if ($kind == 4 && is_int ( $score )) {
+			// test, save score
+			// convert DB score to array |$scoresToSave|
+			if (! $currentScores) {
+				$currentScores = '';
+				$scoresToSave = [ ];
+			} else {
+				$scoresToSave = explode ( ':', $currentScores );
+			}
+			
+			// add new score
+			$scoresToSave [] = $score;
+			
+			// preserve last 3 scores
+			while ( count( $scoresToSave ) > 3 ) {
+				array_shift ( $scoresToSave );
+			}
+			
+			$scoresToSaveDB = implode ( ':', $scoresToSave );
+			
+			$sql = sprintf ( "UPDATE guser SET scores = '%s' WHERE userid='%s' AND level='%d' AND lesson='%d' AND kind='%d'", // no return
+mysqli_real_escape_string ( $link, $scoresToSaveDB ), // new count
+mysqli_real_escape_string ( $link, $userid ), // userid
+mysqli_real_escape_string ( $link, $level ), // userid
+mysqli_real_escape_string ( $link, $lesson ), // userid
+mysqli_real_escape_string ( $link, $kind ) ); // userid
 			$result = $link->query ( $sql );
 			if (! $result) {
 				die ( mysqli_error ( $link ) );
