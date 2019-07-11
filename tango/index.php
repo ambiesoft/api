@@ -205,7 +205,7 @@ switch ($method) {
 			mydie ( 'User id not found' );
 		}
 		
-		function getCurrentCount($dblink, $userid, $level, $lesson, $kind) {
+		function getCurrentCountAndScore($dblink, $userid, $level, $lesson, $kind) {
 			$sql = sprintf ( "SELECT count,scores FROM `guser` WHERE userid = '%s' AND level = '%d' AND lesson = '%d' AND kind = '%d' LIMIT 1", // no format return
 mysqli_real_escape_string ( $dblink, $userid ), // userid
 mysqli_real_escape_string ( $dblink, $level ), // level
@@ -233,7 +233,7 @@ mysqli_real_escape_string ( $dblink, $kind ) ); // lesson
 			];
 		}
 		
-		list ( $currentCount, $currentScores ) = getCurrentCount ( $link, $userid, $level, $lesson, $kind );
+		list ( $currentCount, $currentScores ) = getCurrentCountAndScore ( $link, $userid, $level, $lesson, $kind );
 		
 		if ($currentCount < 0) {
 			// first insert
@@ -309,7 +309,7 @@ mysqli_real_escape_string ( $link, $kind ) ); // userid
 		}
 		
 		// Get the current value again from the DB
-		$newCurrentCount = getCurrentCount ( $link, $userid, $level, $lesson, $kind );
+		list ( $newCurrentCount, $dummy ) = getCurrentCountAndScore ( $link, $userid, $level, $lesson, $kind );
 		
 		// Initialize array variable
 		$dbdata ['level'] = $level;
