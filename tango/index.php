@@ -1,22 +1,24 @@
 <?php
 // define ( 'DEBUGGING', true );
-
 require 'funcs.php';
 
 // mb_internal_encoding("UTF-8");
 header ( 'Content-type: text/json; charset=utf-8' );
-function mydie($message) {
-	http_response_code ( 500 );
-	if(defined('DEBUGGING') && DEBUGGING )
+function mydie($message, $errornum) {
+	if (defined ( 'DEBUGGING' ) && DEBUGGING) {
+		http_response_code ( 500 + 50 );
 		$message .= ' DEBUGGING';
+	} else {
+		http_response_code ( 500 + 50 + $errornum );
+	}
 	die ( $message );
 }
 
-if ($_SERVER ['REQUEST_METHOD'] !== 'POST' &&$_SERVER ['REQUEST_METHOD'] !== 'GET') {
+if ($_SERVER ['REQUEST_METHOD'] !== 'POST' && $_SERVER ['REQUEST_METHOD'] !== 'GET') {
 	// return OK
-	exit(0);
+	exit ( 0 );
 }
-		
+
 /*
  * https://www.quora.com/How-do-I-post-form-data-to-a-PHP-script-using-Axios
  * Axios posts data in JSON format (Content-Type: application/json) Standard $_POST
@@ -28,7 +30,7 @@ if ($_SERVER ['REQUEST_METHOD'] === 'POST' && empty ( $_POST )) {
 	// set true to return array
 	$_POST = json_decode ( file_get_contents ( 'php://input' ), true );
 	if ($_POST === null) {
-		mydie ( 'Illegal json' );
+		mydie ( 'Illegal json', 1 );
 	}
 }
 
@@ -43,11 +45,11 @@ if (! in_array ( $method, [
 		'setresult',
 		'quiz' 
 ] )) {
-	mydie ( "Illegal method:$method" );
+	mydie ( "Illegal method:$method", 2 );
 }
 
 if (! file_exists ( dirname ( __FILE__ ) . '/config.php' )) {
-	mydie ( "'config.php' does not exit. Copy 'config.php.samele' to it and edit." );
+	mydie ( "'config.php' does not exit. Copy 'config.php.samele' to it and edit.", 3 );
 }
 require_once 'config.php';
 
@@ -62,7 +64,7 @@ $link = new mysqli ( $dbhost, $dbuser, $dbpass, $dbname );
 
 // Check connection was successful
 if ($link->connect_errno) {
-	mydie ( "Failed to connect to database" );
+	mydie ( "Failed to connect to database", 4 );
 }
 
 mysqli_set_charset ( $link, "utf8" );
@@ -78,7 +80,7 @@ function getParamLevel() {
 	if ((0 < $level && $level <= MAX_LEVEL) || $level == - 1)
 		return $level;
 	
-	mydie ( "Illegal level:$level" );
+	mydie ( "Illegal level:$level", 5 );
 }
 function getParamLesson() {
 	$lesson = ( int ) @$_GET ['lesson'];
@@ -89,7 +91,7 @@ function getParamLesson() {
 	if ((0 < $lesson && $lesson <= MAX_LESSON) || $lesson == - 1)
 		return $lesson;
 	
-	mydie ( "Illegal lesson:$lesson" );
+	mydie ( "Illegal lesson:$lesson", 6 );
 }
 function getParam($param) {
 	if (isset ( $_GET [$param] )) {
@@ -115,10 +117,10 @@ function getGoogleUserID($id_token) {
 			try {
 				$userid = verifyGoogleToken ( $CLIENT_ID, $id_token );
 				if (! $userid) {
-					mydie ( 'Invalide UserID' );
+					mydie ( 'Invalide UserID', 7 );
 				}
 			} catch ( Exception $e ) {
-				mydie ( $e );
+				mydie ( $e, 8 );
 			}
 			
 			// save session in cookie
@@ -149,7 +151,7 @@ switch ($method) {
 		// Fetch 3 rows from actor table
 		$result = $link->query ( $sql );
 		if (! $result) {
-			mydie ( 'db error' );
+			mydie ( 'db error', 9 );
 		}
 		
 		// Fetch into associative array
@@ -167,7 +169,7 @@ switch ($method) {
 			// Fetch 3 rows from actor table
 			$result = $link->query ( $sql );
 			if (! $result) {
-				mydie ( 'db error' );
+				mydie ( 'db error', 10 );
 			}
 			
 			// Fetch into associative array
@@ -196,13 +198,13 @@ switch ($method) {
 		} else if ($kindstring == 'test') {
 			$kind = 4;
 		} else {
-			mydie ( 'Illegal Kind' );
+			mydie ( 'Illegal Kind', 11 );
 		}
 		
 		// get userid from session cookie
 		list ( $userid, $sessret ) = getGoogleUserID ( $id_token );
 		if (! $userid) {
-			mydie ( 'User id not found' );
+			mydie ( 'User id not found', 12 );
 		}
 		
 		function getCurrentCountAndScore($dblink, $userid, $level, $lesson, $kind) {
@@ -216,7 +218,7 @@ mysqli_real_escape_string ( $dblink, $kind ) ); // lesson
 			
 			$result = $dblink->query ( $sql );
 			if (! $result) {
-				mydie ( mysqli_error ( $dblink ) );
+				mydie ( mysqli_error ( $dblink ), 13 );
 			}
 			
 			// Get count
@@ -250,7 +252,7 @@ mysqli_real_escape_string ( $link, getDBCurrentTime () ) ); // lastupdate
 			
 			$result = $link->query ( $sql );
 			if (! $result) {
-				mydie ( mysqli_error ( $link ) );
+				mydie ( mysqli_error ( $link ), 14 );
 			}
 		} else {
 			// Increment count
@@ -264,17 +266,17 @@ mysqli_real_escape_string ( $link, $kind ) ); // userid
 			                                              // end of sql
 			$result = $link->query ( $sql );
 			if (! $result) {
-				mydie ( mysqli_error ( $link ) );
+				mydie ( mysqli_error ( $link ), 15 );
 			}
 		}
 		
-		if ($kind == 4 ) {
+		if ($kind == 4) {
 			$score = getParam ( 'score' );
-			if(!is_int($score)) {
-				mydie ( "Score must be int:$score" );
+			if (! is_int ( $score )) {
+				mydie ( "Score must be int:$score", 16 );
 			}
 			if (! (0 <= $score && $score <= 100)) {
-				mydie ( "Illegal score:$score" );
+				mydie ( "Illegal score:$score", 17 );
 			}
 			
 			// test, save score
@@ -304,7 +306,7 @@ mysqli_real_escape_string ( $link, $lesson ), // userid
 mysqli_real_escape_string ( $link, $kind ) ); // userid
 			$result = $link->query ( $sql );
 			if (! $result) {
-				mydie ( mysqli_error ( $link ) );
+				mydie ( mysqli_error ( $link ), 18 );
 			}
 		}
 		
@@ -322,7 +324,7 @@ mysqli_real_escape_string ( $link, $kind ) ); // userid
 		$level = getParamLevel ();
 		list ( $userid, $sessret ) = getGoogleUserID ( $id_token );
 		if (! $userid) {
-			mydie ( 'User id not found' );
+			mydie ( 'User id not found', 19 );
 		}
 		
 		$sql = sprintf ( "SELECT *  FROM `guser` WHERE `userid` = '%s' AND `level` = %d", // no ret
@@ -331,7 +333,7 @@ mysqli_real_escape_string ( $link, $level ) ); // $level
 		                                               // endof sqlF
 		$result = $link->query ( $sql );
 		if (! $result) {
-			mydie ( mysqli_error ( $link ) );
+			mydie ( mysqli_error ( $link ), 20 );
 		}
 		
 		// create empty ret
@@ -362,7 +364,7 @@ mysqli_real_escape_string ( $link, $endI ) ); // endI
 			
 			$result = $link->query ( $sql );
 			if (! $result)
-				mydie ( mysqli_error ( $link ) );
+				mydie ( mysqli_error ( $link ), 21 );
 			
 			while ( $row = $result->fetch_assoc () ) {
 				$dbdata [] = $row;
@@ -377,7 +379,7 @@ mysqli_real_escape_string ( $link, $id ) );
 			
 			$result = $link->query ( $sql );
 			if (! $result)
-				mydie ( mysqli_error ( $link ) );
+				mydie ( mysqli_error ( $link ), 22 );
 			
 			$wrongs = [ ];
 			while ( $row = $result->fetch_assoc () ) {
@@ -388,9 +390,9 @@ mysqli_real_escape_string ( $link, $id ) );
 		break;
 }
 
-if(defined('DEBUGGING') && DEBUGGING )
-	$dbdata['DEBUGGING'] = ' DEBUGGING';
-	
+if (defined ( 'DEBUGGING' ) && DEBUGGING)
+	$dbdata ['DEBUGGING'] = ' DEBUGGING';
+
 // Print array in JSON format
 echo json_encode ( $dbdata );
 
