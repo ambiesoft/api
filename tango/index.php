@@ -5,6 +5,10 @@ require 'funcs.php';
 
 // mb_internal_encoding("UTF-8");
 header ( 'Content-type: text/json; charset=utf-8' );
+function mydie($message) {
+	http_response_code ( 500 );
+	die ( $message );
+}
 
 /*
  * https://www.quora.com/How-do-I-post-form-data-to-a-PHP-script-using-Axios
@@ -17,7 +21,7 @@ if ($_SERVER ['REQUEST_METHOD'] === 'POST' && empty ( $_POST )) {
 	// set true to return array
 	$_POST = json_decode ( file_get_contents ( 'php://input' ), true );
 	if ($_POST === null) {
-		die ( 'Illegal json' );
+		mydie ( 'Illegal json' );
 	}
 }
 
@@ -32,11 +36,11 @@ if (! in_array ( $method, [
 		'setresult',
 		'quiz' 
 ] )) {
-	die ( "Illegal method:$method" );
+	mydie ( "Illegal method:$method" );
 }
 
 if (! file_exists ( dirname ( __FILE__ ) . '/config.php' )) {
-	die ( "'config.php' does not exit. Copy 'config.php.samele' to it and edit." );
+	mydie ( "'config.php' does not exit. Copy 'config.php.samele' to it and edit." );
 }
 require_once 'config.php';
 
@@ -51,7 +55,7 @@ $link = new mysqli ( $dbhost, $dbuser, $dbpass, $dbname );
 
 // Check connection was successful
 if ($link->connect_errno) {
-	die ( "Failed to connect to database" );
+	mydie ( "Failed to connect to database" );
 }
 
 mysqli_set_charset ( $link, "utf8" );
@@ -60,25 +64,25 @@ mysqli_set_charset ( $link, "utf8" );
 $dbdata = array ();
 function getParamLevel() {
 	$level = ( int ) @$_GET ['level'];
-	if (0 < $level && $level <= MAX_LEVEL)
+	if ((0 < $level && $level <= MAX_LEVEL) || $level == - 1)
 		return $level;
 	
 	$level = ( int ) @$_POST ['level'];
-	if (0 < $level && $level <= MAX_LEVEL)
+	if ((0 < $level && $level <= MAX_LEVEL) || $level == - 1)
 		return $level;
 	
-	die ( "Illegal level:$level" );
+	mydie ( "Illegal level:$level" );
 }
 function getParamLesson() {
 	$lesson = ( int ) @$_GET ['lesson'];
-	if (0 < $lesson && $lesson <= MAX_LESSON)
+	if ((0 < $lesson && $lesson <= MAX_LESSON) || $lesson == - 1)
 		return $lesson;
 	
 	$lesson = ( int ) @$_POST ['lesson'];
-	if (0 < $lesson && $lesson <= MAX_LESSON)
+	if ((0 < $lesson && $lesson <= MAX_LESSON) || $lesson == - 1)
 		return $lesson;
 	
-	die ( "Illegal lesson:$lesson" );
+	mydie ( "Illegal lesson:$lesson" );
 }
 function getParam($param) {
 	if (isset ( $_GET [$param] )) {
@@ -89,7 +93,7 @@ function getParam($param) {
 function getGoogleUserID($id_token) {
 	// should not keep userid
 	// if (! session_start ()) {
-	// die ( 'failed to start session' );
+	// mydie( 'failed to start session' );
 	// }
 	// $userid = @$_SESSION ['userid'];
 	$userid = '';
@@ -104,10 +108,10 @@ function getGoogleUserID($id_token) {
 			try {
 				$userid = verifyGoogleToken ( $CLIENT_ID, $id_token );
 				if (! $userid) {
-					die ( 'Invalide UserID' );
+					mydie ( 'Invalide UserID' );
 				}
 			} catch ( Exception $e ) {
-				die ( $e );
+				mydie ( $e );
 			}
 			
 			// save session in cookie
@@ -138,7 +142,7 @@ switch ($method) {
 		// Fetch 3 rows from actor table
 		$result = $link->query ( $sql );
 		if (! $result) {
-			die ( 'db error' );
+			mydie ( 'db error' );
 		}
 		
 		// Fetch into associative array
@@ -156,7 +160,7 @@ switch ($method) {
 			// Fetch 3 rows from actor table
 			$result = $link->query ( $sql );
 			if (! $result) {
-				die ( 'db error' );
+				mydie ( 'db error' );
 			}
 			
 			// Fetch into associative array
@@ -175,6 +179,12 @@ switch ($method) {
 		$lesson = getParamLesson ();
 		$kindstring = @$_POST ['kind'];
 		$score = getParam ( 'score' );
+		if(!is_int($score)) {
+			mydie ( "Score must be int:$score" );
+		}
+		if (! (0 <= $score && $score <= 100)) {
+			mydie ( "Illegal score:$score" );
+		}
 		
 		$kind = 0;
 		if ($kindstring == 'normal') {
@@ -186,13 +196,13 @@ switch ($method) {
 		} else if ($kindstring == 'test') {
 			$kind = 4;
 		} else {
-			die ( 'Illegal Kind' );
+			mydie ( 'Illegal Kind' );
 		}
 		
 		// get userid from session cookie
 		list ( $userid, $sessret ) = getGoogleUserID ( $id_token );
 		if (! $userid) {
-			die ( 'User id not found' );
+			mydie ( 'User id not found' );
 		}
 		
 		function getCurrentCount($dblink, $userid, $level, $lesson, $kind) {
@@ -206,7 +216,7 @@ mysqli_real_escape_string ( $dblink, $kind ) ); // lesson
 			
 			$result = $dblink->query ( $sql );
 			if (! $result) {
-				die ( mysqli_error ( $dblink ) );
+				mydie ( mysqli_error ( $dblink ) );
 			}
 			
 			// Get count
@@ -234,13 +244,13 @@ mysqli_real_escape_string ( $link, $level ), // userid
 mysqli_real_escape_string ( $link, $lesson ), // userid
 mysqli_real_escape_string ( $link, $kind ), // userid
 mysqli_real_escape_string ( $link, 1 + $currentCount ), // count
-mysqli_real_escape_string ( $link, getDBCurrentTime () ) ) // lastupdate
-; // userid
-			   // end of sql
+mysqli_real_escape_string ( $link, getDBCurrentTime () ) ); // lastupdate
+			                                                            // userid
+			                                                            // end of sql
 			
 			$result = $link->query ( $sql );
 			if (! $result) {
-				die ( mysqli_error ( $link ) );
+				mydie ( mysqli_error ( $link ) );
 			}
 		} else {
 			// Increment count
@@ -251,10 +261,10 @@ mysqli_real_escape_string ( $link, $userid ), // userid
 mysqli_real_escape_string ( $link, $level ), // userid
 mysqli_real_escape_string ( $link, $lesson ), // userid
 mysqli_real_escape_string ( $link, $kind ) ); // userid
-			   // end of sql
+			                                              // end of sql
 			$result = $link->query ( $sql );
 			if (! $result) {
-				die ( mysqli_error ( $link ) );
+				mydie ( mysqli_error ( $link ) );
 			}
 		}
 		
@@ -272,7 +282,7 @@ mysqli_real_escape_string ( $link, $kind ) ); // userid
 			$scoresToSave [] = $score;
 			
 			// preserve last 3 scores
-			while ( count( $scoresToSave ) > 3 ) {
+			while ( count ( $scoresToSave ) > 3 ) {
 				array_shift ( $scoresToSave );
 			}
 			
@@ -286,7 +296,7 @@ mysqli_real_escape_string ( $link, $lesson ), // userid
 mysqli_real_escape_string ( $link, $kind ) ); // userid
 			$result = $link->query ( $sql );
 			if (! $result) {
-				die ( mysqli_error ( $link ) );
+				mydie ( mysqli_error ( $link ) );
 			}
 		}
 		
@@ -304,7 +314,7 @@ mysqli_real_escape_string ( $link, $kind ) ); // userid
 		$level = getParamLevel ();
 		list ( $userid, $sessret ) = getGoogleUserID ( $id_token );
 		if (! $userid) {
-			die ( 'User id not found' );
+			mydie ( 'User id not found' );
 		}
 		
 		$sql = sprintf ( "SELECT *  FROM `guser` WHERE `userid` = '%s' AND `level` = %d", // no ret
@@ -313,7 +323,7 @@ mysqli_real_escape_string ( $link, $level ) ); // $level
 		                                               // endof sqlF
 		$result = $link->query ( $sql );
 		if (! $result) {
-			die ( mysqli_error ( $link ) );
+			mydie ( mysqli_error ( $link ) );
 		}
 		
 		// create empty ret
@@ -344,7 +354,7 @@ mysqli_real_escape_string ( $link, $endI ) ); // endI
 			
 			$result = $link->query ( $sql );
 			if (! $result)
-				die ( mysqli_error ( $link ) );
+				mydie ( mysqli_error ( $link ) );
 			
 			while ( $row = $result->fetch_assoc () ) {
 				$dbdata [] = $row;
@@ -359,7 +369,7 @@ mysqli_real_escape_string ( $link, $id ) );
 			
 			$result = $link->query ( $sql );
 			if (! $result)
-				die ( mysqli_error ( $link ) );
+				mydie ( mysqli_error ( $link ) );
 			
 			$wrongs = [ ];
 			while ( $row = $result->fetch_assoc () ) {
