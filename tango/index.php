@@ -185,13 +185,6 @@ switch ($method) {
 		$level = getParamLevel ();
 		$lesson = getParamLesson ();
 		$kindstring = @$_POST ['kind'];
-		$score = getParam ( 'score' );
-		if(!is_int($score)) {
-			mydie ( "Score must be int:$score" );
-		}
-		if (! (0 <= $score && $score <= 100)) {
-			mydie ( "Illegal score:$score" );
-		}
 		
 		$kind = 0;
 		if ($kindstring == 'normal') {
@@ -275,7 +268,15 @@ mysqli_real_escape_string ( $link, $kind ) ); // userid
 			}
 		}
 		
-		if ($kind == 4 && is_int ( $score )) {
+		if ($kind == 4 ) {
+			$score = getParam ( 'score' );
+			if(!is_int($score)) {
+				mydie ( "Score must be int:$score" );
+			}
+			if (! (0 <= $score && $score <= 100)) {
+				mydie ( "Illegal score:$score" );
+			}
+			
 			// test, save score
 			// convert DB score to array |$scoresToSave|
 			if (! $currentScores) {
