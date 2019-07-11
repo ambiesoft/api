@@ -1,5 +1,5 @@
 <?php
-define ( 'DEBUGGING', true );
+// define ( 'DEBUGGING', true );
 
 require 'funcs.php';
 
@@ -7,6 +7,8 @@ require 'funcs.php';
 header ( 'Content-type: text/json; charset=utf-8' );
 function mydie($message) {
 	http_response_code ( 500 );
+	if(defined('DEBUGGING') && DEBUGGING )
+		$message .= ' DEBUGGING';
 	die ( $message );
 }
 
@@ -385,6 +387,9 @@ mysqli_real_escape_string ( $link, $id ) );
 		break;
 }
 
+if(defined('DEBUGGING') && DEBUGGING )
+	$dbdata['DEBUGGING'] = ' DEBUGGING';
+	
 // Print array in JSON format
 echo json_encode ( $dbdata );
 
