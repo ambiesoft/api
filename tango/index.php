@@ -4,6 +4,8 @@ define('USESESSION',true);
 
 require 'funcs.php';
 
+
+
 // mb_internal_encoding("UTF-8");
 header ( 'Content-type: text/json; charset=utf-8' );
 function mydie($message, $errornum) {
