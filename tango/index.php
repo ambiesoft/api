@@ -398,6 +398,8 @@ mysqli_real_escape_string ( $link, $id ) );
 if (defined ( 'DEBUGGING' ) && DEBUGGING)
 	$dbdata ['DEBUGGING'] = ' DEBUGGING';
 
+$dbdata['sessret'] = $sessret;
+
 // Print array in JSON format
 echo json_encode ( $dbdata );
 
