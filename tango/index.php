@@ -1,6 +1,6 @@
 <?php
 // define ( 'DEBUGGING', true );
-define('USESESSION',true);
+define('USESESSION',false);
 
 require 'funcs.php';
 
