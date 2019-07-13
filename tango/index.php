@@ -377,6 +377,7 @@ mysqli_real_escape_string ( $link, $endI ) ); // endI
 				mydie ( mysqli_error ( $link ), 21 );
 			
 			while ( $row = $result->fetch_assoc () ) {
+				$row['level'] = GetLevelFromID($row['id']);
 				$dbdata [] = $row;
 			}
 		}
