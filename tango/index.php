@@ -1,10 +1,8 @@
 <?php
-// define ( 'DEBUGGING', true );
-define('USESESSION',false);
+define ( 'DEBUGGING', true );
+define ( 'USESESSION', false );
 
 require 'funcs.php';
-
-
 
 // mb_internal_encoding("UTF-8");
 header ( 'Content-type: text/json; charset=utf-8' );
@@ -130,8 +128,8 @@ function getGoogleUserID($id_token) {
 			}
 			
 			// save session in cookie
-			if(USESESSION) {
-			$_SESSION ['userid'] = $userid;
+			if (USESESSION) {
+				$_SESSION ['userid'] = $userid;
 			}
 			$sessret = 'authorized';
 		} else {
@@ -278,6 +276,7 @@ mysqli_real_escape_string ( $link, $kind ) ); // userid
 		}
 		
 		if ($kind == 4) {
+			// get score and check sanity
 			$score = getParam ( 'score' );
 			if (! is_int ( $score )) {
 				mydie ( "Score must be int:$score", 16 );
@@ -318,14 +317,18 @@ mysqli_real_escape_string ( $link, $kind ) ); // userid
 		}
 		
 		// Get the current value again from the DB
-		list ( $newCurrentCount, $dummy ) = getCurrentCountAndScore ( $link, $userid, $level, $lesson, $kind );
+		list ( $newCurrentCount, $newScore ) = getCurrentCountAndScore ( $link, $userid, $level, $lesson, $kind );
 		
 		// Initialize array variable
 		$dbdata ['level'] = $level;
 		$dbdata ['lesson'] = $lesson;
 		$dbdata ['kind'] = $kind;
 		$dbdata ['newcount'] = $newCurrentCount;
-		$dbdata['sessret'] = $sessret;
+		if ($kind == 4) {
+			// quiz
+			$dbdata ['newscore'] = $newScore;
+		}
+		$dbdata ['sessret'] = $sessret;
 		break;
 	case 'lessons' :
 		$level = getParamLevel ();
@@ -399,8 +402,6 @@ mysqli_real_escape_string ( $link, $id ) );
 
 if (defined ( 'DEBUGGING' ) && DEBUGGING)
 	$dbdata ['DEBUGGING'] = ' DEBUGGING';
-
-
 
 // Print array in JSON format
 echo json_encode ( $dbdata );
