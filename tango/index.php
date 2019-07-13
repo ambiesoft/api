@@ -1,5 +1,5 @@
 <?php
-// define ( 'DEBUGGING', true );
+define ( 'DEBUGGING', true );
 define ( 'USESESSION', false );
 
 require 'funcs.php';
@@ -45,7 +45,8 @@ if (! in_array ( $method, [
 		'lessons',
 		'search',
 		'setresult',
-		'quiz' 
+		'quiz',
+		'quizscore' 
 ] )) {
 	mydie ( "Illegal method:$method", 2 );
 }
@@ -144,6 +145,24 @@ function getGoogleUserID($id_token) {
 function getDBCurrentTime() {
 	return gmdate ( 'Y-m-d H:i:s' );
 }
+function GetParamKind() {
+	$kindstring = @$_POST ['kind'];
+	
+	$kind = 0;
+	if ($kindstring == 'normal') {
+		$kind = 1;
+	} else if ($kindstring == 'speed') {
+		$kind = 2;
+	} else if ($kindstring == 'confirm') {
+		$kind = 3;
+	} else if ($kindstring == 'test') {
+		$kind = 4;
+	} else {
+		mydie ( 'Illegal Kind', 11 );
+	}
+	return $kind;
+}
+
 switch ($method) {
 	
 	case 'tango' :
@@ -192,20 +211,8 @@ switch ($method) {
 		
 		$level = getParamLevel ();
 		$lesson = getParamLesson ();
-		$kindstring = @$_POST ['kind'];
 		
-		$kind = 0;
-		if ($kindstring == 'normal') {
-			$kind = 1;
-		} else if ($kindstring == 'speed') {
-			$kind = 2;
-		} else if ($kindstring == 'confirm') {
-			$kind = 3;
-		} else if ($kindstring == 'test') {
-			$kind = 4;
-		} else {
-			mydie ( 'Illegal Kind', 11 );
-		}
+		$kind = GetParamKind ();
 		
 		list ( $userid, $sessret ) = getGoogleUserID ( $id_token );
 		if (! $userid) {
@@ -377,7 +384,7 @@ mysqli_real_escape_string ( $link, $endI ) ); // endI
 				mydie ( mysqli_error ( $link ), 21 );
 			
 			while ( $row = $result->fetch_assoc () ) {
-				$row['level'] = GetLevelFromID($row['id']);
+				$row ['level'] = GetLevelFromID ( $row ['id'] );
 				$dbdata [] = $row;
 			}
 		}
@@ -398,6 +405,32 @@ mysqli_real_escape_string ( $link, $id ) );
 			}
 			$value ['wronganswers'] = $wrongs;
 		}
+		break;
+	
+	case 'quizscore' :
+		$level = getParamLevel ();
+		$lesson = getParamLesson ();
+		$kind = GetParamKind ();
+		list ( $userid, $sessret ) = getGoogleUserID ( $id_token );
+		if (! $userid) {
+			mydie ( 'User id not found', 12 );
+		}
+		$sql = sprintf ( "SELECT scores FROM `guser` WHERE userid='%s' AND level='%d' AND lesson='%d' AND kind='%d'", // nn
+mysqli_real_escape_string ( $link, $userid ), // userid
+mysqli_real_escape_string ( $link, $level ), // userid
+mysqli_real_escape_string ( $link, $lesson ), // userid
+mysqli_real_escape_string ( $link, $kind ) ); // userid
+
+		
+		$result = $link->query ( $sql );
+		if (! $result)
+			mydie ( mysqli_error ( $link ), 22 );
+		
+		$score = mysqli_fetch_all ( $result ) [0] [0];
+		$dbdata ['level'] = $level;
+		$dbdata ['lesson'] = $lesson;
+		$dbdata ['kind'] = $kind;
+		$dbdata ['score'] = $score;
 		break;
 }
 
