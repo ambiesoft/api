@@ -1,5 +1,5 @@
 <?php
-// define ( 'DEBUGGING', true );
+define ( 'DEBUGGING', true );
 define ( 'USESESSION', false );
 
 require 'funcs.php';
@@ -171,8 +171,11 @@ switch ($method) {
 		$lesson = getParamLesson ();
 		
 		$startI = GetStartID ( $level, $lesson );
-		$sql = sprintf ( "SELECT word,meaning,gpron FROM `tango` WHERE %d <= id AND id < %d", $startI, $startI + 50 );
-		
+		$sql = sprintf ( "SELECT word,meaning,gpron FROM `tango` WHERE %d <= id AND id < %d", // n
+$startI, // n
+$startI + WORDS_PER_LESSON ) // n
+; // n
+		   
 		// Fetch 3 rows from actor table
 		$result = $link->query ( $sql );
 		if (! $result) {
@@ -369,24 +372,55 @@ mysqli_real_escape_string ( $link, $level ) ); // $level
 		break;
 	
 	case 'quiz' :
-		// take 5 words from each level
-		for($i = 1; $i <= MAX_LEVEL; ++ $i) {
-			$startI = GetStartID ( $i, 1 );
-			$endI = GetStartID ( $i + 1, 1 ) - 1;
+		function GetQuizSQLALL($link, $level) {
+			$startI = GetStartID ( $level, 1 );
+			$endI = GetStartID ( $level + 1, 1 ) - 1;
 			
-			$sql = sprintf ( "SELECT * FROM `tango` WHERE %d <= id && id <= %d ORDER BY RAND() LIMIT 5", // no ret
+			return sprintf ( "SELECT * FROM `tango` WHERE %d <= id && id <= %d ORDER BY RAND() LIMIT 5", // no ret
 mysqli_real_escape_string ( $link, $startI ), // startI
 mysqli_real_escape_string ( $link, $endI ) ); // endI
-			                                              // end of sql
+		}
+		function GetQuizSQLLesson($link, $level, $lesson) {
+			$startI = GetStartID ( $level, $lesson );
+			$endI = $startI + WORDS_PER_LESSON - 1;
+			
+			return sprintf ( "SELECT * FROM `tango` WHERE %d <= id && id <= %d ORDER BY RAND() LIMIT 20", // no ret
+mysqli_real_escape_string ( $link, $startI ), // startI
+mysqli_real_escape_string ( $link, $endI ) ); // endI
+		}
+		
+		$level = getParamLevel ();
+		$lesson = getParamLesson ();
+		
+		if ($level == - 1 && $lesson == - 1) {
+			// take 5 words from each level
+			for($i = 1; $i <= MAX_LEVEL; ++ $i) {
+				$sql = GetQuizSQLALL ( $link, $i );
+				
+				$result = $link->query ( $sql );
+				if (! $result)
+					mydie ( mysqli_error ( $link ), 21 );
+				
+				while ( $row = $result->fetch_assoc () ) {
+					$row ['level'] = GetLevelFromID ( $row ['id'] );
+					$dbdata [] = $row;
+				}
+			}
+		} else if($level > 0 && $lesson > 0) {
+			$sql = GetQuizSQLLesson( $link, $level,$lesson );
 			
 			$result = $link->query ( $sql );
 			if (! $result)
 				mydie ( mysqli_error ( $link ), 21 );
 			
 			while ( $row = $result->fetch_assoc () ) {
-				$row ['level'] = GetLevelFromID ( $row ['id'] );
+				if(GetLevelFromID ( $row ['id'] ) != $level)
+					mydie('Internal Error', 13);
+				$row ['level'] = $level;
 				$dbdata [] = $row;
 			}
+		} else {
+			mydie('Illegal level and lesson in quz', 14);
 		}
 		
 		// get wrong answers and fill
@@ -420,7 +454,6 @@ mysqli_real_escape_string ( $link, $userid ), // userid
 mysqli_real_escape_string ( $link, $level ), // userid
 mysqli_real_escape_string ( $link, $lesson ), // userid
 mysqli_real_escape_string ( $link, $kind ) ); // userid
-
 		
 		$result = $link->query ( $sql );
 		if (! $result)

@@ -1,6 +1,7 @@
 <?php
 define ( 'MAX_LEVEL', 7 );
 define ( 'MAX_LESSON', 20 );
+define ( 'WORDS_PER_LESSON', 50 );
 
 // $id is 1 to last
 // each lessons contain 50 word
