@@ -1,5 +1,5 @@
 <?php
-define ( 'DEBUGGING', true );
+// define ( 'DEBUGGING', true );
 define ( 'USESESSION', false );
 
 require 'funcs.php';
