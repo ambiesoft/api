@@ -1,5 +1,5 @@
 <?php
-// define ( 'DEBUGGING', true );
+define ( 'DEBUGGING', true );
 define ( 'USESESSION', false );
 
 require 'funcs.php';
@@ -415,7 +415,8 @@ mysqli_real_escape_string ( $link, $endI ) ); // endI
 			
 			while ( $row = $result->fetch_assoc () ) {
 				if(GetLevelFromID ( $row ['id'] ) != $level)
-					mydie('Internal Error', 13);
+					mydie(sprintf('id level != $level (%d != %d) (lesson=%d)',
+							$row['id'], $level, $lesson), 13);
 				$row ['level'] = $level;
 				$dbdata [] = $row;
 			}
