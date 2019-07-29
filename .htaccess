@@ -1,7 +1,7 @@
 <IfModule mod_headers.c>
 #  Header add Access-Control-Allow-Origin "http://localhost:8080"
 #  Header add Access-Control-Allow-Origin "http://tango.dip.jp"
-SetEnvIf Origin "^https?://(localhost:8080|tango\.dip\.jp)" ORIGIN=$0
+SetEnvIf Origin "^https?://(localhost:808.|tango\.dip\.jp)" ORIGIN=$0
 Header set Access-Control-Allow-Origin %{ORIGIN}e env=ORIGIN
 Header set Access-Control-Allow-Methods "GET,PUT,POST,DELETE"
 Header set Access-Control-Allow-Headers "Content-Type, Authorization"
