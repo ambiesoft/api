@@ -1,5 +1,5 @@
 <?php
-define ( 'MAX_LEVEL', 7 );
+define ( 'MAX_LEVEL', 8 );
 define ( 'MAX_LESSON', 20 );
 define ( 'WORDS_PER_LESSON', 50 );
 
