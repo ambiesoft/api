@@ -356,12 +356,6 @@ mysqli_real_escape_string ( $link, $level ) ); // $level
 			mydie ( mysqli_error ( $link ), 20 );
 		}
 		
-		// create empty ret
-		// for($i=1 ; $i <= MAX_LESSON ; ++$i) {
-		// $dbdata[$i] = array();
-		// $dbdata[$i]['lesson']=$i;
-		// }
-		
 		while ( $row = $result->fetch_assoc () ) {
 			unset ( $row ['userid'] );
 			
