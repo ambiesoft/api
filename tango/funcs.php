@@ -1,8 +1,18 @@
 <?php
 define ( 'MAX_LEVEL', 8 );
+define ( 'MAX_LEVEL_LESSON', 2 );
 define ( 'MAX_LESSON', 20 );
 define ( 'WORDS_PER_LESSON', 50 );
 
+function maxLesson($level) {
+	if( 1 <= $level && $level <= 7){
+		return MAX_LESSON;
+	}
+	if($level==MAX_LEVEL){
+		return MAX_LEVEL_LESSON;
+	}
+	return 0;
+}
 // $id is 1 to last
 // each lessons contain 50 word
 // each level contain 20 lessons(=1000 words)
@@ -15,6 +25,15 @@ define ( 'WORDS_PER_LESSON', 50 );
 // 951 1 20
 function GetStartID($level, $lesson) {
 	return ($level - 1) * 1000 + (($lesson - 1) * 50) + 1;
+}
+function  GetEndID($level, $lesson) {
+	if($lesson >= MAX_LESSON) {
+		++$level;
+		$lesson = 1;
+	} else {
+		++$lesson;
+	}
+	return GetStartID($level, $lesson)-1;
 }
 function GetLevelFromID($id) {
 	return ( int ) (($id-1) / 1000) + 1;

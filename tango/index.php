@@ -368,7 +368,8 @@ mysqli_real_escape_string ( $link, $level ) ); // $level
 	case 'quiz' :
 		function GetQuizSQLALL($link, $level) {
 			$startI = GetStartID ( $level, 1 );
-			$endI = GetStartID ( $level + 1, 1 ) - 1;
+			// $endI = GetStartID ( $level + 1, 1 ) - 1;
+			$endI = GetEndID($level, maxLesson($level));
 			
 			return sprintf ( "SELECT * FROM `tango` WHERE %d <= id && id <= %d ORDER BY RAND() LIMIT 5", // no ret
 mysqli_real_escape_string ( $link, $startI ), // startI
