@@ -1,6 +1,6 @@
 <?php
 define ( 'MAX_LEVEL', 8 );
-define ( 'MAX_LEVEL_LESSON', 4 );
+define ( 'MAX_LEVEL_LESSON', 5 );
 define ( 'MAX_LESSON', 20 );
 define ( 'WORDS_PER_LESSON', 50 );
 
