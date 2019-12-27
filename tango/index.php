@@ -192,12 +192,17 @@ $startI + WORDS_PER_LESSON ) // n
 		$q = @$_GET ['q'];
 		
 		if ($q) {
+			// Limit in both query
 			$querylimit = 50;
 			$querycolumns = "id,word,meaning,gpron";
+			
+			// for checking duplicates
+			$sets = array();
 			$queries = [
 				"SELECT %s FROM `tango` WHERE word LIKE '%s' LIMIT %d",
 				"SELECT %s FROM `tango` WHERE word LIKE '%%%s%%' LIMIT %d",
 			];
+			
 			foreach ($queries as $query)
 			{
 				$sql = sprintf ( $query,
@@ -212,12 +217,17 @@ $startI + WORDS_PER_LESSON ) // n
 				}
 				
 				// Fetch into associative array
-				while ( $row = $result->fetch_assoc () ) {
-					$row ['level'] = GetLevelFromID ( $row ['id'] );
-					$row ['lesson'] = GetLessonFromID ( $row ['id'] );
-					// unset($row['id']);
-					$dbdata [] = $row;
-					--$querylimit;
+				while ( $row = $result->fetch_assoc () ) 
+				{
+					if(!isset($sets[$row['id']]))
+					{
+						$row ['level'] = GetLevelFromID ( $row ['id'] );
+						$row ['lesson'] = GetLessonFromID ( $row ['id'] );
+						// unset($row['id']);
+						$dbdata [] = $row;
+						--$querylimit;
+						$sets[$row['id']]=true;
+					}
 				}
 			}
 		}
