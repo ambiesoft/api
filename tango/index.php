@@ -192,20 +192,33 @@ $startI + WORDS_PER_LESSON ) // n
 		$q = @$_GET ['q'];
 		
 		if ($q) {
-			$sql = sprintf ( "SELECT id,word,meaning,gpron FROM `tango` WHERE word LIKE '%%%s%%' LIMIT 50", mysqli_real_escape_string ( $link, $q ) );
-			
-			// Fetch 3 rows from actor table
-			$result = $link->query ( $sql );
-			if (! $result) {
-				mydie ( 'db error', 10 );
-			}
-			
-			// Fetch into associative array
-			while ( $row = $result->fetch_assoc () ) {
-				$row ['level'] = GetLevelFromID ( $row ['id'] );
-				$row ['lesson'] = GetLessonFromID ( $row ['id'] );
-				// unset($row['id']);
-				$dbdata [] = $row;
+			$querylimit = 50;
+			$querycolumns = "id,word,meaning,gpron";
+			$queries = [
+				"SELECT %s FROM `tango` WHERE word LIKE '%s' LIMIT %d",
+				"SELECT %s FROM `tango` WHERE word LIKE '%%%s%%' LIMIT %d",
+			];
+			foreach ($queries as $query)
+			{
+				$sql = sprintf ( $query,
+						$querycolumns,
+						mysqli_real_escape_string ( $link, $q ),
+						$querylimit);
+				
+				// Fetch 3 rows from actor table
+				$result = $link->query ( $sql );
+				if (! $result) {
+					mydie ( 'db error', 10 );
+				}
+				
+				// Fetch into associative array
+				while ( $row = $result->fetch_assoc () ) {
+					$row ['level'] = GetLevelFromID ( $row ['id'] );
+					$row ['lesson'] = GetLessonFromID ( $row ['id'] );
+					// unset($row['id']);
+					$dbdata [] = $row;
+					--$querylimit;
+				}
 			}
 		}
 		break;
