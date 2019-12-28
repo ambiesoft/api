@@ -1,0 +1,144 @@
+{
+	"info": {
+		"_postman_id": "f3bd7246-b9e4-4006-b3bd-800db3ca3393",
+		"name": "api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "setresult test level (local)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\n\t\"level\": 3,\n\t\"lesson\": 5,\n\t\"kind\": \"normal\"\n\t\n\t\n}"
+				},
+				"url": {
+					"raw": "http://localhost/api/tango/?method=setresult&XDEBUG_SESSION_START=ECLIPSE_DBGP&KEY=15627847170822",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"tango",
+						""
+					],
+					"query": [
+						{
+							"key": "method",
+							"value": "setresult"
+						},
+						{
+							"key": "XDEBUG_SESSION_START",
+							"value": "ECLIPSE_DBGP"
+						},
+						{
+							"key": "KEY",
+							"value": "15627847170822"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "setresult test quiz (local)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\n\t\"level\": -1,\n\t\"lesson\": -1,\n\t\"kind\": \"test\",\n\t\"score\": \"33\"\n\t\n}"
+				},
+				"url": {
+					"raw": "http://localhost/api/tango/?method=setresult&XDEBUG_SESSION_START=ECLIPSE_DBGP&KEY=15627847170822",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"tango",
+						""
+					],
+					"query": [
+						{
+							"key": "method",
+							"value": "setresult"
+						},
+						{
+							"key": "XDEBUG_SESSION_START",
+							"value": "ECLIPSE_DBGP"
+						},
+						{
+							"key": "KEY",
+							"value": "15627847170822"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "setresult test quiz (remote)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\n\t\"level\": -1,\n\t\"lesson\": -1,\n\t\"kind\": \"test\",\n\t\"score\": \"33\"\n\t\n}"
+				},
+				"url": {
+					"raw": "http://localhost/api/tango/?method=setresult&XDEBUG_SESSION_START=ECLIPSE_DBGP&KEY=15627847170822",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"tango",
+						""
+					],
+					"query": [
+						{
+							"key": "method",
+							"value": "setresult"
+						},
+						{
+							"key": "XDEBUG_SESSION_START",
+							"value": "ECLIPSE_DBGP"
+						},
+						{
+							"key": "KEY",
+							"value": "15627847170822"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
